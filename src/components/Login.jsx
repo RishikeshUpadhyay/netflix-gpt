@@ -1,10 +1,15 @@
 import React, { useRef, useState } from 'react'
 import Header from './Header'
-import { NETFLIX_BG } from '../utils/constants'
+import { NETFLIX_BG, PHOTO_URL } from '../utils/constants'
 import validate from '../utils/validate'
+import { auth } from '../utils/firebase'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { useDispatch } from 'react-redux'
+import { addUser } from '../utils/userSlice'
 
 const Login = () => {
 
+    const dispatch = useDispatch()
     const email = useRef()
     const name = useRef()
     const password = useRef()
@@ -15,6 +20,55 @@ const Login = () => {
     const handleBtnClick = () => {
         const message = validate(email?.current?.value, name?.current?.value, password?.current?.value)
         setErrorMessage(message)
+
+        if (message) return;
+
+        if (!isSignInForm) {
+            //Sign Up Logic
+            
+createUserWithEmailAndPassword(auth, email?.current?.value, password?.current?.value)
+  .then((userCredential) => {
+    // Signed up 
+    const user = userCredential.user;
+    // ...
+    updateProfile(user, {
+        displayName: name?.current?.value, photoURL: PHOTO_URL
+      }).then(() => {
+        // Profile updated!
+        // ...
+        const {uid, email, displayName, photoURL} = auth?.currentUser
+        dispatch(addUser({uid: uid, email: email, displayName: displayName, photoURL: photoURL}))
+      }).catch((error) => {
+        // An error occurred
+        // ...
+        setErrorMessage(error.message)
+      });
+      
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    setErrorMessage(errorCode + "-" + errorMessage)
+    // ..
+  });
+
+        }
+        else {
+            //Sign In Logic
+            signInWithEmailAndPassword(auth, email?.current?.value, password?.current?.value)
+  .then((userCredential) => {
+    // Signed in 
+    const user = userCredential.user;
+    console.log(user)
+    // ...
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    setErrorMessage(errorCode+ "-" + errorMessage)
+  });
+
+        }
     }
 
     const toggleSignInForm = () => {
