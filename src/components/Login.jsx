@@ -59,7 +59,7 @@ createUserWithEmailAndPassword(auth, email?.current?.value, password?.current?.v
   .then((userCredential) => {
     // Signed in 
     const user = userCredential.user;
-    console.log(user)
+    // console.log(user)
     // ...
   })
   .catch((error) => {
